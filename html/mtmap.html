@@ -4,47 +4,56 @@
 <link rel="shortcut icon" href="favicon.ico" />
 <html lang="en">
   <head>
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v9.1.0/ol.css" type="text/css" integrity="sha384-PpyAaiUdY+s8ycCAmYsYkyq9cQgPWrtjtiv4/NzjY5FHo+7R5wdgdpqPAOl+No0J" crossorigin="anonymous">
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol-ext@4.0.18/dist/ol-ext.min.css" integrity="sha384-P3rje4kvN3abflinwnEm/qFnQdXNe0Q0/zkL2LsNzHGmq9u3r1aydjY880SN8Us3" crossorigin="anonymous">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v9.1.0/ol.css" type="text/css" integrity="sha384-PpyAaiUdY+s8ycCAmYsYkyq9cQgPWrtjtiv4/NzjY5FHo+7R5wdgdpqPAOl+No0J" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol-ext@4.0.18/dist/ol-ext.min.css" integrity="sha384-P3rje4kvN3abflinwnEm/qFnQdXNe0Q0/zkL2LsNzHGmq9u3r1aydjY880SN8Us3" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
 
     <style>
-	  .map {
-		position: absolute;
-		top: 0;
-		left: 0;
-		height: 100%;
-		width: 100%;
+          .map {
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 100%;
       }
-	  .center-map {
-		top: 65px;
-		left: .5em;
-	  }
-	  .ol-touch .center-map {
-		top: 80px;
-	  }
-	  .ovl {
-		position: absolute;
-		top: 5px;
-		right: 5px;
-		background: white;
-		z-index: 1000;
-	   }
+          .center-map {
+                top: 65px;
+                left: .5em;
+          }
+          .ol-touch .center-map {
+                top: 80px;
+          }
+          .ovl {
+                position: absolute;
+                top: 5px;
+                right: 5px;
+                background: white;
+                z-index: 1000;
+           }
 
-	  .ol-control.ol-legend {
-		bottom: 1.5em;
-		left: auto;
-		right: .5em;
-	  }
+          .ol-control.ol-legend {
+                bottom: 1.5em;
+                left: auto;
+                right: .5em;
+          }
 
-	  .ol-button i {
-		color: inherit;
-	  }
+          .ol-button i {
+                color: inherit;
+          }
 
-	  .ol-control.ol-bar .ol-toggle.ol-active > button {
-		background-color: #fff;
-		color: inherit;
-	  }
+          .ol-control.ol-bar .ol-toggle.ol-active > button {
+                background-color: #fff;
+                color: inherit;
+          }
+
+      .coordinates {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        background: rgba(255, 255, 255, 0.7);
+        padding: 5px;
+        border-radius: 3px;
+      }
 
     </style>
     <script src="https://cdn.jsdelivr.net/npm/ol@v9.1.0/dist/ol.js" integrity="sha384-SD/ncgTfeuQTb89UTe6nsqPzp0mGjAZ1E3ieIxVnvJBw5hk+Ppc4FdkUBpALqTjL" crossorigin="anonymous"></script>
@@ -55,6 +64,7 @@
   <body>
     <h3 id="title">Iridium-Live</h3>
     <div id="map" class="map" tabindex="0"><div id="info"></div><div id="time" class="ovl">(loading...)</div></div>
+    <div id="coordinates" class="coordinates">Lat: -, Lon: -</div>
     <script type="text/javascript">
 //
 // Config
@@ -64,22 +74,22 @@
 let jitter = true
 let animate = true
 
-
 // start map with custom tiles
 const tileLayer = new ol.layer.Tile({
-		source: new ol.source.OSM({
-		  url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
-		  attributions: 'Tiles &copy; Esri'
-		})
-	  });
+                source: new ol.source.OSM({
+                  url: 'https://{a-d}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+                  "attributions" : 'Powered by <a href="https://carto.com">CARTO.com</a>'
+                  + ' using data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+                })
+          });
 
 var map = new ol.Map({
-	target: 'map',
-	layers: [tileLayer],
-	view: new ol.View({
-		center: ol.proj.fromLonLat([0.00, 0.00]),
-		zoom: 4
-	})
+        target: 'map',
+        layers: [tileLayer],
+        view: new ol.View({
+                center: ol.proj.fromLonLat([0.00, 0.00]),
+                zoom: 4
+        })
 });
 
 // add "graphics" layer
@@ -90,12 +100,12 @@ map.addLayer(vectorLayer);
 // Define & add a new legend
 function getFeatureStyle (feature) {
   return [
-	new ol.style.Style ({
-		  image: new ol.style.Circle({
-			  radius: 5,
-			  fill: new ol.style.Fill({color: 'rgba('+feature.get('color')+',0.5)'}),
-		  })
-	  })
+        new ol.style.Style ({
+                  image: new ol.style.Circle({
+                          radius: 5,
+                          fill: new ol.style.Fill({color: 'rgba('+feature.get('color')+',0.5)'}),
+                  })
+          })
   ]
 }
 
@@ -134,7 +144,7 @@ let refreshCtrl = new ol.control.Button({
         } else {
             refreshCtrl.setHtml('<i class="fa fa-toggle-off"></i>');
         };
-		setRefresh(refreshCtrl.active);
+                setRefresh(refreshCtrl.active);
     }
 });
 refreshCtrl.active = true;
@@ -155,8 +165,8 @@ mainbar.addControl (new ol.control.FullScreen());
 
 // Define & add our geocentric projection
 proj4.defs(
-	'geocent',
-	'+proj=geocent +datum=WGS84 +ellps=WGS84 +units=m +no_defs'
+        'geocent',
+        '+proj=geocent +datum=WGS84 +ellps=WGS84 +units=m +no_defs'
 );
 ol.proj.proj4.register(proj4);
 
@@ -165,17 +175,17 @@ ol.proj.proj4.register(proj4);
 //
 
 function setRefresh(active){
-	console.log("Refresh is now", active);
+        console.log("Refresh is now", active);
 
-	// XXX: TBD
-	if (active){
-		// reload js and start again
-		// (maybe some anti-rapid-reload protection)
-		refresh(true);
-	}else{
-		// cancel timeout (paint_id)
-		clearTimeout(refresh_id);
-	}
+        // XXX: TBD
+        if (active){
+                // reload js and start again
+                // (maybe some anti-rapid-reload protection)
+                refresh(true);
+        }else{
+                // cancel timeout (paint_id)
+                clearTimeout(refresh_id);
+        }
 }
 
 function centerMap() {
@@ -187,33 +197,33 @@ function centerMap() {
             source.getFeatures().forEach(function (feature) {
                 ol.extent.extend(extent, feature.getGeometry().getExtent());
             })
-//			ol.extent.extend(extent, layer.getSource().getFeatures().getGeometry().getExtent());
+//                      ol.extent.extend(extent, layer.getSource().getFeatures().getGeometry().getExtent());
         }
     });
-	try {
-		map.getView().fit(extent, { padding: [25, 10, 50, 10], maxZoom: 6 }); // top, _, bottom, _
-	} catch(e) { // extent could be empty
-		return;
-	}
-//	map.getView().animate({ center: extent, duration: 1000, });
+        try {
+                map.getView().fit(extent, { padding: [25, 10, 50, 10], maxZoom: 6 }); // top, _, bottom, _
+        } catch(e) { // extent could be empty
+                return;
+        }
+//      map.getView().animate({ center: extent, duration: 1000, });
 }
 
 // Proper ISO timestamp (with timezone)
 Date.prototype.toISOString = function() {
-	var tzo = -this.getTimezoneOffset(),
-		dif = tzo >= 0 ? '+' : '-',
-		pad = function(num) {
-			var norm = Math.floor(Math.abs(num));
-			return (norm < 10 ? '0' : '') + norm;
-		};
-	return this.getFullYear() +
-		'-' + pad(this.getMonth() + 1) +
-		'-' + pad(this.getDate()) +
-		'T' + pad(this.getHours()) +
-		':' + pad(this.getMinutes()) +
-		':' + pad(this.getSeconds()) +
-		dif + pad(tzo / 60) +
-		':' + pad(tzo % 60);
+        var tzo = -this.getTimezoneOffset(),
+                dif = tzo >= 0 ? '+' : '-',
+                pad = function(num) {
+                        var norm = Math.floor(Math.abs(num));
+                        return (norm < 10 ? '0' : '') + norm;
+                };
+        return this.getFullYear() +
+                '-' + pad(this.getMonth() + 1) +
+                '-' + pad(this.getDate()) +
+                'T' + pad(this.getHours()) +
+                ':' + pad(this.getMinutes()) +
+                ':' + pad(this.getSeconds()) +
+                dif + pad(tzo / 60) +
+                ':' + pad(tzo % 60);
 }
 
 timeElement = document.getElementById('time');
@@ -249,68 +259,68 @@ let refresh_id = undefined;
 let lastData = undefined;
 
 async function refresh(first) {
-	clearTimeout(paint_id); // kill, if still running
-	
-	console.log("refreshing",first?"(first)":"...");
+        clearTimeout(paint_id); // kill, if still running
 
-	const resp = await fetch("mt.json", (first) ? {} : { cache: "no-cache" });
-	const data = await resp.json();
+        console.log("refreshing",first?"(first)":"...");
 
-	console.log("fetched", new Date().toISOString(), "time diff",(Date.now() - new Date(data["time"]*1000))/1000,"s")
+        const resp = await fetch("mt.json", (first) ? {} : { cache: "no-cache" });
+        const data = await resp.json();
 
-	if (data["time"] != lastData){ // new data
-		lastData = data["time"];
+        console.log("fetched", new Date().toISOString(), "time diff",(Date.now() - new Date(data["time"]*1000))/1000,"s")
 
-		paint_data(data); // will paint up to "interval"
+        if (data["time"] != lastData){ // new data
+                lastData = data["time"];
 
-		if (first) {
-			centerMap();
-		};
-	} else {
-		console.log("stale file received.");
-	}
+                paint_data(data); // will paint up to "interval"
+
+                if (first) {
+                        centerMap();
+                };
+        } else {
+                console.log("stale file received.");
+        }
 
     const redo = data["interval"];
     console.log("will refresh in", redo, "s");
-	if (redo > 2){ // enforce min of 2 secs
-		refresh_id = setTimeout(refresh, redo * 1000);
-	}
+        if (redo > 2){ // enforce min of 2 secs
+                refresh_id = setTimeout(refresh, redo * 1000);
+        }
 }
 
 var paint_id = undefined;
 
 function paint_data(data){
-	// delete old (if present)
-	const features = vectorSource.getFeatures();
-	if (features != null && features.length > 0) {
-		for (x in features) {
-			vectorSource.removeFeature(features[x]);
-		}
-	}
+        // delete old (if present)
+        const features = vectorSource.getFeatures();
+        if (features != null && features.length > 0) {
+                for (x in features) {
+                        vectorSource.removeFeature(features[x]);
+                }
+        }
 
-	// paint new
-	console.log("MT positions:", data["mt_pos"].length);
-	const stime=data['time']-data['interval'];
-	setTime(stime);
+        // paint new
+        console.log("MT positions:", data["mt_pos"].length);
+        const stime=data['time']-data['interval'];
+        setTime(stime);
 
-  	interactivePainter(stime, data["mt_pos"], 0);
+        interactivePainter(stime, data["mt_pos"], 0);
 }
 
 function interactivePainter(stime, todo, idx){
-	console.log("iP:", stime, todo.length, idx);
-	setTime(stime);
+        console.log("iP:", stime, todo.length, idx);
+        setTime(stime);
 
-	while(idx < todo.length && ( todo[idx].ts <= stime || !animate )){
-		paint_mt(todo[idx], stime);
-		idx++;
-	}
-	if (idx < todo.length){
-	    const nxt = todo[idx].ts-stime;
-	    console.log("next paint:",nxt);
-		paint_id = setTimeout(interactivePainter, nxt*1000, stime + nxt, todo, idx);
-	}else{
-		console.log("data exhausted");
-	}
+        while(idx < todo.length && ( todo[idx].ts <= stime || !animate )){
+                paint_mt(todo[idx], stime);
+                idx++;
+        }
+        if (idx < todo.length){
+            const nxt = todo[idx].ts-stime;
+            console.log("next paint:",nxt);
+                paint_id = setTimeout(interactivePainter, nxt*1000, stime + nxt, todo, idx);
+        }else{
+                console.log("data exhausted");
+        }
 }
 
 //
@@ -320,11 +330,11 @@ function paint_mt(mt, curtime) {
     // console.log("paint_mt",mt.xyz, mt.ts- curtime);
 
     // transform coords
-	const prng = splitmix32(Math.trunc(mt.ts))
+        const prng = splitmix32(Math.trunc(mt.ts))
 
-	if (jitter){
-		mt.xyz = mt.xyz.map(function (c) { return c + (prng()-0.5) * 0.2 }); // +/- 100m
-	}
+        if (jitter){
+                mt.xyz = mt.xyz.map(function (c) { return c + (prng()-0.5) * 0.2 }); // +/- 100m
+        }
 
     const points = ol.proj.transform(
         mt.xyz.map(function (km) {
@@ -355,7 +365,7 @@ function paint_mt(mt, curtime) {
     vectorSource.addFeature(featurePoint);
 
     if (curtime - mt.ts < 1 && animate) { // in the past?
-		flash(featurePoint, color);
+                flash(featurePoint, color);
     }
 };
 
@@ -395,6 +405,18 @@ function flash(feature, color) {
     map.render();
   }
 }
+
+//
+// Display mouse coordinates
+//
+
+const coordinatesElement = document.getElementById('coordinates');
+map.on('pointermove', function (event) {
+    const coords = ol.proj.toLonLat(event.coordinate);
+    const lat = coords[1].toFixed(5);
+    const lon = coords[0].toFixed(5);
+    coordinatesElement.innerHTML = `Lat: ${lat}, Lon: ${lon}`;
+});
 
 //
 // Startup
